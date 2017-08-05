@@ -1,3 +1,5 @@
+#![allow(dead_code)]  // this is a compile-pass test
+
 #[macro_use]
 extern crate diesel_derive_intermediate;
 
@@ -9,7 +11,6 @@ struct Val {
     other: &'static str,
 }
 
-#[allow(dead_code)]
 fn builds() {
     Val { id: 0, other: &"" };
     NewVal { other: &"new" };
@@ -25,7 +26,6 @@ struct Complex {
     other: &'static str,
 }
 
-#[allow(dead_code)]
 fn builds_complex() {
     Complex { id: 0, oid: 1, other: "" };
     NewComplex { other: "" };
