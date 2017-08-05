@@ -54,6 +54,10 @@ see [`tests/diesel-interaction.rs`](tests/diesel-interaction.rs) for a couple
 fully-worked examples, including using with `Insertable` and the purpose of the
 `intermediate_exclude(NAME)` form.
 
+Interestingly, since this is abusing the derive proc-macro infrastructure, if
+you have no `#[diesel_intermediate_derive(...)]` attributes, you will get
+"empty trait list in \`derive\`" warnings.
+
 ## License
 
 diesel-newtype is licensed under either of

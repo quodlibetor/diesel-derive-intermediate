@@ -15,12 +15,9 @@ const EXCLUDE: &str = "diesel_intermediate_exclude";
 const DERIVE: &str = "diesel_intermediate_derive";
 const TABLE_NAME: &str = "intermediate_table_name";
 
-#[proc_macro_derive(
-    DieselIntermediate, attributes(
-        diesel_intermediate_exclude,
-        diesel_intermediate_derive,
-        intermediate_table_name,
-    ))]
+#[proc_macro_derive(DieselIntermediate,
+                    attributes(diesel_intermediate_exclude, diesel_intermediate_derive,
+                                 intermediate_table_name))]
 pub fn diesel_intermediate_fields(input: TokenStream) -> TokenStream {
     let source = input.to_string();
 
@@ -57,8 +54,14 @@ fn expand_diesel_intermediate_fields(ast: &DeriveInput) -> Tokens {
     let (impl_generics, _ty_generics, where_clause) = ast.generics.split_for_impl();
 
     build_items(
-        &common_fields, &intermediates, &derive_attr, &table_name_attr, &base_name,
-        &impl_generics, where_clause)
+        &common_fields,
+        &intermediates,
+        &derive_attr,
+        &table_name_attr,
+        &base_name,
+        &impl_generics,
+        where_clause,
+    )
 }
 
 fn build_items(
@@ -96,26 +99,35 @@ fn build_items(
 }
 
 fn strip_attr(field: &Field, attr: &str) -> Vec<Attribute> {
-    field.attrs.iter().cloned().filter(|a| match a.value {
-        MetaItem::Word(ref ident) if ident == attr => false,
-        MetaItem::List(ref ident, ..) if ident == attr => false,
-        _ => true,
-    }).collect::<Vec<_>>()
+    field
+        .attrs
+        .iter()
+        .cloned()
+        .filter(|a| match a.value {
+            MetaItem::Word(ref ident) if ident == attr => false,
+            MetaItem::List(ref ident, ..) if ident == attr => false,
+            _ => true,
+        })
+        .collect::<Vec<_>>()
 }
 
 fn extract_items(attrs: &[Attribute], attr: &str) -> Vec<String> {
-    attrs.iter().filter_map(|a| match a.value {
-        MetaItem::List(ref ident, ref vals) if ident == attr => Some(vals),
-        _ => None,
-    }).flat_map(|list_items| {
-        list_items.into_iter().map(|item| {
-            if let &NestedMetaItem::MetaItem(MetaItem::Word(ref val)) = item {
-                val.to_string()
-            } else {
-                panic!("Unexpected format for item: {} ", quote!(#item));
-            }
+    attrs
+        .iter()
+        .filter_map(|a| match a.value {
+            MetaItem::List(ref ident, ref vals) if ident == attr => Some(vals),
+            _ => None,
         })
-    }).collect::<Vec<_>>()
+        .flat_map(|list_items| {
+            list_items.into_iter().map(|item| {
+                if let &NestedMetaItem::MetaItem(MetaItem::Word(ref val)) = item {
+                    val.to_string()
+                } else {
+                    panic!("Unexpected format for item: {} ", quote!(#item));
+                }
+            })
+        })
+        .collect::<Vec<_>>()
 }
 
 fn extract_intermediates(fields: &[Field]) -> (Vec<&Field>, HashMap<String, Vec<Field>>) {
@@ -130,9 +142,7 @@ fn extract_intermediates(fields: &[Field]) -> (Vec<&Field>, HashMap<String, Vec<
             }
             // If any of this fields attrs are "exclude" then we want to strip the entire field
             f.attrs.iter().any(|a| match a.value {
-                MetaItem::Word(ref ident) if ident == EXCLUDE => {
-                    false
-                },
+                MetaItem::Word(ref ident) if ident == EXCLUDE => false,
                 MetaItem::List(ref ident, ref vals) if ident == EXCLUDE && vals.len() == 1 => {
                     // but, if the field is marked with some prefix, then we
                     // want to store it to be used in the Prefix struct
@@ -145,14 +155,17 @@ fn extract_intermediates(fields: &[Field]) -> (Vec<&Field>, HashMap<String, Vec<
                             .push(field_without_attr);
                         false
                     } else {
-                        panic!("Unexpected shape for attribute: {} over {}",
-                               quote!(#vals), quote!(#f));
+                        panic!(
+                            "Unexpected shape for attribute: {} over {}",
+                            quote!(#vals),
+                            quote!(#f)
+                        );
                     }
                 }
-                MetaItem::List(ref ident, ref vals) if ident == EXCLUDE => {
-                    panic!("Cannot handle more than one intermediate type yet: {}",
-                           quote! { #ident(#(#vals),*) })
-                }
+                MetaItem::List(ref ident, ref vals) if ident == EXCLUDE => panic!(
+                    "Cannot handle more than one intermediate type yet: {}",
+                    quote! { #ident(#(#vals),*) }
+                ),
                 MetaItem::NameValue(..) | MetaItem::Word(_) | MetaItem::List(..) => true,
             })
         })

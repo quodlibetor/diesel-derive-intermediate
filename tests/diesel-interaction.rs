@@ -51,18 +51,22 @@ pub struct Rust {
 #[cfg(test)]
 fn setup() -> SqliteConnection {
     let conn = SqliteConnection::establish(":memory:").unwrap();
-    let setup = sql::<diesel::types::Bool>("
+    let setup = sql::<diesel::types::Bool>(
+        "
         CREATE TABLE mycologists (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             rust_count INTEGER NOT NULL
-        )");
+        )",
+    );
     setup.execute(&conn).expect("Can't create table");
-    let setup = sql::<diesel::types::Bool>("
+    let setup = sql::<diesel::types::Bool>(
+        "
         CREATE TABLE rusts (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             mycologist_id INTEGER NOT NULL,
             life_cycle_stage INTEGER
-        )");
+        )",
+    );
     setup.execute(&conn).expect("Can't create table");
     conn
 }
@@ -78,14 +82,24 @@ fn can_insert_mycologist() {
         .expect("Couldn't insert struct into mycologists");
 
     let found: Vec<Mycologist> = mycologists::table.load(&conn).unwrap();
-    assert_eq!(found, vec![ Mycologist { id: 1, rust_count: 156 } ]);
+    assert_eq!(
+        found,
+        vec![
+            Mycologist {
+                id: 1,
+                rust_count: 156,
+            },
+        ]
+    );
 }
 
 #[test]
 fn can_insert_intermediate() {
     let conn = setup();
 
-    let rust = NewRust { life_cycle_stage: 0 };
+    let rust = NewRust {
+        life_cycle_stage: 0,
+    };
     let mike = NewMycologist { rust_count: 0 };
 
     diesel::insert(&mike)
@@ -100,7 +114,7 @@ fn can_insert_intermediate() {
 
     let captured_rust = CapturedRust {
         mycologist_id: created.id,
-        life_cycle_stage: rust.life_cycle_stage
+        life_cycle_stage: rust.life_cycle_stage,
     };
 
     diesel::insert(&captured_rust)
@@ -110,9 +124,14 @@ fn can_insert_intermediate() {
 
     let created = rusts::table.load::<Rust>(&conn).unwrap();
 
-    assert_eq!(created, vec![Rust {
-        id: 1,
-        mycologist_id: 1,
-        life_cycle_stage: 0,
-    }])
+    assert_eq!(
+        created,
+        vec![
+            Rust {
+                id: 1,
+                mycologist_id: 1,
+                life_cycle_stage: 0,
+            },
+        ]
+    )
 }
