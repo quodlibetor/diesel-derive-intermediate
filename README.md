@@ -1,5 +1,7 @@
 # #[derive(DieselIntermediate)]
 
+[![Build Status](https://travis-ci.org/quodlibetor/diesel-derive-intermediate.svg?branch=master)](https://travis-ci.org/quodlibetor/diesel-derive-intermediate)
+
 This is still in the prototype phase!
 
 Given:
