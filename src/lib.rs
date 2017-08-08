@@ -98,14 +98,14 @@ fn build_items(
     new_structs
 }
 
-fn strip_attr(field: &Field, attr: &str) -> Vec<Attribute> {
-    field
-        .attrs
+/// Return the attrs, without any that have the `to_strip` ident
+fn strip_attr(attrs: &[Attribute], to_strip: &str) -> Vec<Attribute> {
+    attrs
         .iter()
         .cloned()
         .filter(|a| match a.value {
-            MetaItem::Word(ref ident) if ident == attr => false,
-            MetaItem::List(ref ident, ..) if ident == attr => false,
+            MetaItem::Word(ref ident) if ident == to_strip => false,
+            MetaItem::List(ref ident, ..) if ident == to_strip => false,
             _ => true,
         })
         .collect::<Vec<_>>()
@@ -130,6 +130,12 @@ fn extract_items(attrs: &[Attribute], attr: &str) -> Vec<String> {
         .collect::<Vec<_>>()
 }
 
+enum ExcludeAttr<'a> {
+    Excluded,
+    Intermediate(&'a str, Field),
+    Included,
+}
+
 fn extract_intermediates(fields: &[Field]) -> (Vec<&Field>, HashMap<String, Vec<Field>>) {
     let mut subtypes = HashMap::new();
 
@@ -137,38 +143,53 @@ fn extract_intermediates(fields: &[Field]) -> (Vec<&Field>, HashMap<String, Vec<
     let common_fields = fields
         .iter()
         .filter(|f| {
-            if f.attrs.len() == 0 {
-                return true;
-            }
+            use ExcludeAttr::*;
             // If any of this fields attrs are "exclude" then we want to strip the entire field
-            f.attrs.iter().any(|a| match a.value {
-                MetaItem::Word(ref ident) if ident == EXCLUDE => false,
-                MetaItem::List(ref ident, ref vals) if ident == EXCLUDE && vals.len() == 1 => {
-                    // but, if the field is marked with some prefix, then we
-                    // want to store it to be used in the Prefix struct
-                    if let Some(&NestedMetaItem::MetaItem(MetaItem::Word(ref val))) = vals.get(0) {
-                        let mut field_without_attr = (*f).clone();
-                        field_without_attr.attrs = strip_attr(f, EXCLUDE);
-                        subtypes
-                            .entry(val.to_string())
-                            .or_insert_with(Vec::new)
-                            .push(field_without_attr);
-                        false
-                    } else {
-                        panic!(
-                            "Unexpected shape for attribute: {} over {}",
-                            quote!(#vals),
-                            quote!(#f)
-                        );
-                    }
+            match field_status(f) {
+                Excluded => false,
+                Intermediate(intermediate_prefix, field) => {
+                    subtypes
+                        .entry(intermediate_prefix.to_string())
+                        .or_insert_with(Vec::new)
+                        .push(field);
+                    false
                 }
-                MetaItem::List(ref ident, ref vals) if ident == EXCLUDE => panic!(
-                    "Cannot handle more than one intermediate type yet: {}",
-                    quote! { #ident(#(#vals),*) }
-                ),
-                MetaItem::NameValue(..) | MetaItem::Word(_) | MetaItem::List(..) => true,
-            })
+                Included => true
+            }
         })
         .collect::<Vec<_>>();
     (common_fields, subtypes)
+}
+
+fn field_status(field: &Field) -> ExcludeAttr {
+    use ExcludeAttr::*;
+    for a in &field.attrs {
+        match a.value {
+            MetaItem::Word(ref ident) if ident == EXCLUDE => {
+                return Excluded;
+            }
+            MetaItem::List(ref ident, ref vals) if ident == EXCLUDE && vals.len() == 1 => {
+                // but, if the field is marked with some prefix, then we
+                // want to store it to be used in the Prefix struct
+                if let Some(&NestedMetaItem::MetaItem(MetaItem::Word(ref val))) = vals.get(0) {
+                    let mut field_without_attr = (*field).clone();
+                    field_without_attr.attrs = strip_attr(&field.attrs, EXCLUDE);
+                    return Intermediate(val.as_ref(), field_without_attr);
+                } else {
+                    panic!(
+                        "Unexpected shape for attribute: {} over {}",
+                        quote!(#vals), quote!(#field));
+                }
+            }
+            MetaItem::List(ref ident, ref vals) if ident == EXCLUDE => panic!(
+                "Cannot handle more than one intermediate type yet: {}",
+                quote! { #ident(#(#vals),*) }
+            ),
+            MetaItem::NameValue(..) | MetaItem::Word(..) | MetaItem::List(..) => {
+                // If it's not an EXCLUDE attr we don't need to do anything to it
+            }
+        }
+    }
+    // if we never encountered an EXCLUDE attr then it's still included
+    return Included;
 }
