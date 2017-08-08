@@ -1,4 +1,4 @@
-# #[derive(DieselIntermediate)]
+# `#[derive(DieselIntermediate)]`
 
 [![Build Status](https://travis-ci.org/quodlibetor/diesel-derive-intermediate.svg?branch=master)](https://travis-ci.org/quodlibetor/diesel-derive-intermediate)
 
