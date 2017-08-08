@@ -60,6 +60,14 @@ Interestingly, since this is abusing the derive proc-macro infrastructure, if
 you have no `#[intermediate_derive(...)]` attributes, you will get
 "empty trait list in \`derive\`" warnings.
 
+### Limitations
+
+* It's not possible to derive multiple `Associations` for the same pair of
+  tables, I think. This means that we can't derive `Associations` for the
+  intermediate types. This seems basically fine, you really only want to be
+  able to join on complete types that have actually been inserted into the DB,
+  not partials that are in the process of getting built to be inserted.
+
 ## License
 
 diesel-newtype is licensed under either of

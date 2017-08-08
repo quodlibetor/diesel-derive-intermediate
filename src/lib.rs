@@ -85,7 +85,6 @@ fn extract_table_name_attr(attrs: &[Attribute]) -> Option<Attribute> {
     found
 }
 
-
 fn build_items(
     common_fields: &[&Field],
     intermediates: &HashMap<String, Vec<Field>>,

@@ -25,6 +25,14 @@ table! {
 }
 
 table! {
+    petri_dishes {
+        id -> Integer,
+        mycologist_id -> Integer,
+        size -> Integer,
+    }
+}
+
+table! {
     mikes {
         id -> Integer,
         rust_count -> Integer,
@@ -53,9 +61,10 @@ pub struct Scientist {
 }
 
 #[derive(DieselIntermediate)]
-#[derive(Debug, Clone, PartialEq, Identifiable, Insertable, Queryable)]
+#[derive(Debug, Clone, PartialEq, Identifiable, Insertable, Queryable, Associations)]
 #[intermediate_derive(Debug, PartialEq, Insertable)]
 #[table_name = "rusts"]
+#[belongs_to(Mycologist)]
 pub struct Rust {
     #[intermediate_exclude]
     id: i32,
@@ -80,7 +89,8 @@ fn setup() -> SqliteConnection {
         CREATE TABLE rusts (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             mycologist_id INTEGER NOT NULL,
-            life_cycle_stage INTEGER
+            life_cycle_stage INTEGER,
+            FOREIGN KEY(mycologist_id) REFERENCES mycologists(id)
         )",
     );
     setup.execute(&conn).expect("Can't create table: rusts");
@@ -131,13 +141,13 @@ fn can_insert_intermediate() {
         .execute(&conn)
         .expect("Couldn't insert struct into mycologists");
 
-    let created: Mycologist = mycologists::table
+    let created_mike: Mycologist = mycologists::table
         .order(mycologists::id.desc())
         .first(&conn)
         .unwrap();
 
     let captured_rust = CapturedRust {
-        mycologist_id: created.id,
+        mycologist_id: created_mike.id,
         life_cycle_stage: rust.life_cycle_stage,
     };
 
@@ -157,7 +167,22 @@ fn can_insert_intermediate() {
                 life_cycle_stage: 0,
             },
         ]
-    )
+    );
+
+    let rusts = Rust::belonging_to(&created_mike)
+        .load::<Rust>(&conn)
+        .expect("couldn't load rusts belonging to mike");
+
+    assert_eq!(
+        rusts,
+        vec![
+            Rust {
+                id: 1,
+                mycologist_id: 1,
+                life_cycle_stage: 0,
+            },
+        ]
+    );
 }
 
 
