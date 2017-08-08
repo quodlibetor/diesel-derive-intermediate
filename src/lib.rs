@@ -13,7 +13,8 @@ use syn::{Attribute, Body, DeriveInput, Field, Ident, MetaItem, NestedMetaItem};
 
 const EXCLUDE: &str = "intermediate_exclude";
 const DERIVE: &str = "intermediate_derive";
-const TABLE_NAME: &str = "intermediate_table_name";
+const OVERRIDE_TABLE_NAME: &str = "intermediate_table_name";
+const DIESEL_TABLE_NAME: &str = "table_name";
 
 #[proc_macro_derive(DieselIntermediate,
                     attributes(intermediate_exclude, intermediate_derive,
@@ -40,13 +41,7 @@ fn expand_diesel_intermediate_fields(ast: &DeriveInput) -> Tokens {
     let derive_attr = format!("#[derive({})]", derives.join(","));
     let derive_attr = syn::parse_outer_attr(&derive_attr).unwrap();
 
-    let insert_table_name = extract_items(&ast.attrs, TABLE_NAME);
-    let table_name_attr = if insert_table_name.len() > 0 {
-        let table_name_attr = format!(r#"#[table_name = "{}"]"#, insert_table_name.join(","));
-        Some(syn::parse_outer_attr(&table_name_attr).unwrap())
-    } else {
-        None
-    };
+    let table_name_attr = extract_table_name_attr(&ast.attrs);
     let (common_fields, intermediates) = extract_intermediates(fields);
 
     let base_name = ast.ident.to_string();
@@ -63,6 +58,33 @@ fn expand_diesel_intermediate_fields(ast: &DeriveInput) -> Tokens {
         where_clause,
     )
 }
+
+/// Extract the table name
+///
+/// set by either `#[intermediate_table_name]` or `#[table_name]`, with
+/// intermediate... having higher priority
+fn extract_table_name_attr(attrs: &[Attribute]) -> Option<Attribute> {
+    let mut found = None;
+    for attr in attrs {
+        match attr.value {
+            MetaItem::NameValue(ref ident, ref literal) if ident == OVERRIDE_TABLE_NAME => {
+                let table_name_attr = format!(r#"#[table_name = {}]"#, quote!(#literal));
+
+                return Some(syn::parse_outer_attr(&table_name_attr).unwrap());
+            },
+            MetaItem::NameValue(ref ident, _) if ident == DIESEL_TABLE_NAME => {
+                found = Some(attr.clone());
+            },
+            MetaItem::List(ref ident, _) if ident == OVERRIDE_TABLE_NAME => {
+                panic!(r#"expected [.. = "<table-name>"], not: {}"#, quote!(#attr));
+            }
+            _ => {}
+        }
+    }
+
+    found
+}
+
 
 fn build_items(
     common_fields: &[&Field],
@@ -178,7 +200,9 @@ fn field_status(field: &Field) -> ExcludeAttr {
                 } else {
                     panic!(
                         "Unexpected shape for attribute: {} over {}",
-                        quote!(#vals), quote!(#field));
+                        quote!(#vals),
+                        quote!(#field)
+                    );
                 }
             }
             MetaItem::List(ref ident, ref vals) if ident == EXCLUDE => panic!(

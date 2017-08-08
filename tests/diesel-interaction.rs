@@ -24,10 +24,16 @@ table! {
     }
 }
 
+table! {
+    mikes {
+        id -> Integer,
+        rust_count -> Integer,
+    }
+}
+
 #[derive(DieselIntermediate)]
 #[derive(Debug, Clone, PartialEq, Identifiable, Insertable, Queryable)]
 #[intermediate_derive(Debug, PartialEq, Insertable)]
-#[intermediate_table_name(mycologists)]
 #[table_name = "mycologists"]
 pub struct Mycologist {
     #[intermediate_exclude]
@@ -38,7 +44,17 @@ pub struct Mycologist {
 #[derive(DieselIntermediate)]
 #[derive(Debug, Clone, PartialEq, Identifiable, Insertable, Queryable)]
 #[intermediate_derive(Debug, PartialEq, Insertable)]
-#[intermediate_table_name(rusts)]
+#[intermediate_table_name = "mikes"]
+#[table_name = "mycologists"]
+pub struct Scientist {
+    #[intermediate_exclude]
+    id: i32,
+    rust_count: i32,
+}
+
+#[derive(DieselIntermediate)]
+#[derive(Debug, Clone, PartialEq, Identifiable, Insertable, Queryable)]
+#[intermediate_derive(Debug, PartialEq, Insertable)]
 #[table_name = "rusts"]
 pub struct Rust {
     #[intermediate_exclude]
@@ -58,7 +74,7 @@ fn setup() -> SqliteConnection {
             rust_count INTEGER NOT NULL
         )",
     );
-    setup.execute(&conn).expect("Can't create table");
+    setup.execute(&conn).expect("Can't create table: mycologists");
     let setup = sql::<diesel::types::Bool>(
         "
         CREATE TABLE rusts (
@@ -67,7 +83,15 @@ fn setup() -> SqliteConnection {
             life_cycle_stage INTEGER
         )",
     );
-    setup.execute(&conn).expect("Can't create table");
+    setup.execute(&conn).expect("Can't create table: rusts");
+    let setup = sql::<diesel::types::Bool>(
+        "
+        CREATE TABLE mikes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            rust_count INTEGER
+        )",
+    );
+    setup.execute(&conn).expect("Can't create table: mikes");
     conn
 }
 
@@ -134,4 +158,23 @@ fn can_insert_intermediate() {
             },
         ]
     )
+}
+
+
+#[test]
+fn can_insert_into_intermediate_table() {
+    let conn = setup();
+    let mike = NewScientist { rust_count: 12 };
+
+    diesel::insert(&mike)
+        .into(mikes::table)
+        .execute(&conn)
+        .expect("Couldn't insert mike into scientists table");
+
+    let fetched_mike = mikes::table.load::<Scientist>(&conn).unwrap();
+
+    diesel::insert(&fetched_mike)
+        .into(mycologists::table)
+        .execute(&conn)
+        .expect("Couldn't insert mike into mycologists table");
 }
