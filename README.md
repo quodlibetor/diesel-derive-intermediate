@@ -8,19 +8,19 @@ Given:
 
 ```rust
 #[derive(DieselIntermediate)]
-#[diesel_intermediate_derive(Debug)]
+#[intermediate_derive(Debug)]
 pub struct Mycologist {
-    #[diesel_intermediate_exclude]
+    #[intermediate_exclude]
     id: i32,
     rust_count: i32,
 }
 
 #[derive(DieselIntermediate)]
-#[diesel_intermediate_derive(Debug)]
+#[intermediate_derive(Debug)]
 pub struct Rust {
-    #[diesel_intermediate_exclude]
+    #[intermediate_exclude]
     id: i32,
-    #[diesel_intermediate_exclude(Captured)]
+    #[intermediate_exclude(Captured)]
     mycologist_id: i32,
     life_cycle_stage: i32,
 }
@@ -57,7 +57,7 @@ fully-worked examples, including using with `Insertable` and the purpose of the
 `intermediate_exclude(NAME)` form.
 
 Interestingly, since this is abusing the derive proc-macro infrastructure, if
-you have no `#[diesel_intermediate_derive(...)]` attributes, you will get
+you have no `#[intermediate_derive(...)]` attributes, you will get
 "empty trait list in \`derive\`" warnings.
 
 ## License

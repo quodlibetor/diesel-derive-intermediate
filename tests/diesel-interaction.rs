@@ -26,24 +26,24 @@ table! {
 
 #[derive(DieselIntermediate)]
 #[derive(Debug, Clone, PartialEq, Identifiable, Insertable, Queryable)]
-#[diesel_intermediate_derive(Debug, PartialEq, Insertable)]
+#[intermediate_derive(Debug, PartialEq, Insertable)]
 #[intermediate_table_name(mycologists)]
 #[table_name = "mycologists"]
 pub struct Mycologist {
-    #[diesel_intermediate_exclude]
+    #[intermediate_exclude]
     id: i32,
     rust_count: i32,
 }
 
 #[derive(DieselIntermediate)]
 #[derive(Debug, Clone, PartialEq, Identifiable, Insertable, Queryable)]
-#[diesel_intermediate_derive(Debug, PartialEq, Insertable)]
+#[intermediate_derive(Debug, PartialEq, Insertable)]
 #[intermediate_table_name(rusts)]
 #[table_name = "rusts"]
 pub struct Rust {
-    #[diesel_intermediate_exclude]
+    #[intermediate_exclude]
     id: i32,
-    #[diesel_intermediate_exclude(Captured)]
+    #[intermediate_exclude(Captured)]
     mycologist_id: i32,
     life_cycle_stage: i32,
 }

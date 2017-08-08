@@ -11,12 +11,12 @@ use proc_macro::TokenStream;
 use quote::Tokens;
 use syn::{Attribute, Body, DeriveInput, Field, Ident, MetaItem, NestedMetaItem};
 
-const EXCLUDE: &str = "diesel_intermediate_exclude";
-const DERIVE: &str = "diesel_intermediate_derive";
+const EXCLUDE: &str = "intermediate_exclude";
+const DERIVE: &str = "intermediate_derive";
 const TABLE_NAME: &str = "intermediate_table_name";
 
 #[proc_macro_derive(DieselIntermediate,
-                    attributes(diesel_intermediate_exclude, diesel_intermediate_derive,
+                    attributes(intermediate_exclude, intermediate_derive,
                                  intermediate_table_name))]
 pub fn diesel_intermediate_fields(input: TokenStream) -> TokenStream {
     let source = input.to_string();
@@ -154,7 +154,7 @@ fn extract_intermediates(fields: &[Field]) -> (Vec<&Field>, HashMap<String, Vec<
                         .push(field);
                     false
                 }
-                Included => true
+                Included => true,
             }
         })
         .collect::<Vec<_>>();

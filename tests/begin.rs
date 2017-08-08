@@ -1,13 +1,14 @@
-#![allow(dead_code)] // this is a compile-pass test
+// this is a compile-pass test
+#![allow(dead_code)]
 #![cfg_attr(feature = "cargo-clippy", allow(no_effect))]
 
 #[macro_use]
 extern crate diesel_derive_intermediate;
 
 #[derive(DieselIntermediate)]
-#[diesel_intermediate_derive(Debug)]
+#[intermediate_derive(Debug)]
 struct Val {
-    #[diesel_intermediate_exclude]
+    #[intermediate_exclude]
     id: i32,
     /// has a docstring
     other: &'static str,
@@ -19,11 +20,11 @@ fn builds() {
 }
 
 #[derive(DieselIntermediate)]
-#[diesel_intermediate_derive(Debug)]
+#[intermediate_derive(Debug)]
 struct Complex {
-    #[diesel_intermediate_exclude]
+    #[intermediate_exclude]
     id: i32,
-    #[diesel_intermediate_exclude(MyPrefix)]
+    #[intermediate_exclude(MyPrefix)]
     oid: i32,
     /// has a docstring
     other: &'static str,
