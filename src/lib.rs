@@ -49,6 +49,7 @@ fn expand_diesel_intermediate_fields(ast: &DeriveInput) -> Tokens {
     let (impl_generics, _ty_generics, where_clause) = ast.generics.split_for_impl();
 
     build_items(
+        &ast.vis,
         &common_fields,
         &intermediates,
         &derive_attr,
@@ -86,6 +87,7 @@ fn extract_table_name_attr(attrs: &[Attribute]) -> Option<Attribute> {
 }
 
 fn build_items(
+    vis: &syn::Visibility,
     common_fields: &[&Field],
     intermediates: &HashMap<String, Vec<Field>>,
     derive_attr: &Attribute,
@@ -98,7 +100,7 @@ fn build_items(
     let mut new_structs = quote! {
         #derive_attr
         #table_name_attr
-        struct #new_name #impl_generics #where_clause {
+        #vis struct #new_name #impl_generics #where_clause {
             #(#common_fields),*
         }
     };
@@ -110,7 +112,7 @@ fn build_items(
 
             #derive_attr
             #table_name_attr
-            struct #this_name #impl_generics #where_clause {
+            #vis struct #this_name #impl_generics #where_clause {
                 #(#extra_fields),* ,
                 #(#common_fields),*
             }
