@@ -16,7 +16,7 @@ pub struct Mycologist {
 }
 
 #[derive(DieselIntermediate)]
-#[intermediate_derive(Debug)]
+#[intermediate_derive(Debug, PartialEq)]
 pub struct Rust {
     #[intermediate_exclude]
     id: i32,
@@ -43,10 +43,12 @@ pub struct Rust {
     mycologist_id: i32,
     life_cycle_stage: i32,
 }
+#[derive(Debug, PartialEq)]
 pub struct CapturedRust {
     mycologist_id: i32,
     life_cycle_stage: i32,
 }
+#[derive(Debug, PartialEq)]
 pub struct NewRust {
     life_cycle_stage: i32,
 }

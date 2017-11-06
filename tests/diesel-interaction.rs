@@ -39,39 +39,45 @@ table! {
     }
 }
 
-#[derive(DieselIntermediate)]
-#[derive(Debug, Clone, PartialEq, Identifiable, Insertable, Queryable)]
-#[intermediate_derive(Debug, PartialEq, Insertable)]
-#[table_name = "mycologists"]
-pub struct Mycologist {
-    #[intermediate_exclude]
-    id: i32,
-    rust_count: i32,
+mod items {
+    use super::{mycologists, rusts, mikes};
+
+    #[derive(DieselIntermediate)]
+    #[derive(Debug, Clone, PartialEq, Identifiable, Insertable, Queryable)]
+    #[intermediate_derive(Debug, PartialEq, Insertable)]
+    #[table_name = "mycologists"]
+    pub struct Mycologist {
+        #[intermediate_exclude]
+        pub id: i32,
+        pub rust_count: i32,
+    }
+
+    #[derive(DieselIntermediate)]
+    #[derive(Debug, Clone, PartialEq, Identifiable, Insertable, Queryable)]
+    #[intermediate_derive(Debug, PartialEq, Insertable)]
+    #[intermediate_table_name = "mikes"]
+    #[table_name = "mycologists"]
+    pub struct Scientist {
+        #[intermediate_exclude]
+        pub id: i32,
+        pub rust_count: i32,
+    }
+
+    #[derive(DieselIntermediate)]
+    #[derive(Debug, Clone, PartialEq, Identifiable, Insertable, Queryable, Associations)]
+    #[intermediate_derive(Debug, PartialEq, Insertable)]
+    #[table_name = "rusts"]
+    #[belongs_to(Mycologist)]
+    pub struct Rust {
+        #[intermediate_exclude]
+        pub id: i32,
+        #[intermediate_exclude(Captured)]
+        pub mycologist_id: i32,
+        pub life_cycle_stage: i32,
+    }
 }
 
-#[derive(DieselIntermediate)]
-#[derive(Debug, Clone, PartialEq, Identifiable, Insertable, Queryable)]
-#[intermediate_derive(Debug, PartialEq, Insertable)]
-#[intermediate_table_name = "mikes"]
-#[table_name = "mycologists"]
-pub struct Scientist {
-    #[intermediate_exclude]
-    id: i32,
-    rust_count: i32,
-}
-
-#[derive(DieselIntermediate)]
-#[derive(Debug, Clone, PartialEq, Identifiable, Insertable, Queryable, Associations)]
-#[intermediate_derive(Debug, PartialEq, Insertable)]
-#[table_name = "rusts"]
-#[belongs_to(Mycologist)]
-pub struct Rust {
-    #[intermediate_exclude]
-    id: i32,
-    #[intermediate_exclude(Captured)]
-    mycologist_id: i32,
-    life_cycle_stage: i32,
-}
+use items::*;
 
 #[cfg(test)]
 fn setup() -> SqliteConnection {
