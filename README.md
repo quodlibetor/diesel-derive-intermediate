@@ -2,7 +2,44 @@
 
 [![Build Status](https://travis-ci.org/quodlibetor/diesel-derive-intermediate.svg?branch=master)](https://travis-ci.org/quodlibetor/diesel-derive-intermediate)
 
-This is still in the prototype phase!
+## Derive intermediate structs
+
+An intermediate struct is a struct that does not have all the data that a
+"full" struct has. For example, you might receive requests that do not have
+an ID until they are inserted into your database (because of an e.g.
+AUTOINCREMENT primary key).
+
+Since having `Option<id>` fields is sort of wrong and definitely
+unergonomic most of the time, it's reasonable to have a `NewStruct` that is
+exactly the same as `Struct`, but without the `id` field.
+
+The goal of this crate is to provide nice ergonomics around supporting
+intermediate structs, and to provide nice integration with
+[`Diesel`](https://diesel.rs/).
+
+`diesel-derive-intermediate` provides several attributes or targets. See
+the example below if the prose isn't clear:
+
+* The `DieselIntermediate` derive target which primarily generates
+  *structs* (not Traits, which is what `#[derive]` is supposed to generate)
+  works with a few attributes to provide field-exclusions on the generated
+  structs.
+* The `#[intermediate_exclude]` field-level attribute which comes in two
+  forms:
+  * `#[intermediate_exclude]` by itself, which marks the field as being
+    excluded from the `NewStruct` struct, and for inclusion in the
+    `from_new_struct` static method.
+  * `#[intermediate_exclude(SomePrefix)]` excludes from the `NewStruct`
+    generated struct, but causes a `SomePrefixStruct` to be generated,
+    which *will* have this field.
+* The `#[intermediate_derive(Traits...)]` struct-level attribute applies
+  its contained traits to all the intermediate structs generated.
+* `DieselIntermediate` will apply diesel's `#[table_name = "..."]`
+  struct-level attribute to all generated structs, if you need to use a
+  different table name you can use `#[intermediate_table_name = "..."]` to
+  override the default.
+
+## Example
 
 Given:
 
@@ -41,7 +78,7 @@ pub struct NewMycologist {
 
 impl Mycologist {
     // The `pub` comes from the `pub` on `Mycologist`
-    pub fn from_new_mycologist(id: i32, base: NewMycologist) {
+    pub fn from_new_mycologist(id: i32, base: NewMycologist) -> Mycologist {
         Mycologist {
             id,
             rust_count: base.rust_count,
@@ -86,12 +123,12 @@ impl Rust {
 }
 ```
 
-see [`tests/diesel-interaction.rs`](tests/diesel-interaction.rs) for a couple
-fully-worked examples, including using with `Insertable` and the purpose of the
-`intermediate_exclude(NAME)` form.
+see [`tests/diesel-interaction.rs`](tests/diesel-interaction.rs) for a
+couple fully-worked examples, including using with `Insertable` and the
+purpose of the `intermediate_exclude(NAME)` form.
 
-Interestingly, since this is abusing the derive proc-macro infrastructure, if
-you have no `#[intermediate_derive(...)]` attributes, you will get
+Interestingly, since this is abusing the derive proc-macro infrastructure,
+if you have no `#[intermediate_derive(...)]` attributes, you will get
 "empty trait list in \`derive\`" warnings.
 
 ### Limitations
@@ -99,8 +136,8 @@ you have no `#[intermediate_derive(...)]` attributes, you will get
 * It's not possible to derive multiple `Associations` for the same pair of
   tables, I think. This means that we can't derive `Associations` for the
   intermediate types. This seems basically fine, you really only want to be
-  able to join on complete types that have actually been inserted into the DB,
-  not partials that are in the process of getting built to be inserted.
+  able to join on complete types that have actually been inserted into the
+  DB, not partials that are in the process of getting built to be inserted.
 
 ## License
 
