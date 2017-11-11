@@ -33,9 +33,20 @@ pub struct Mycologist {
     id: i32,
     rust_count: i32,
 }
+
 #[derive(Debug)]
 pub struct NewMycologist {
     rust_count: i32,
+}
+
+impl Mycologist {
+    // The `pub` comes from the `pub` on `Mycologist`
+    pub fn from_new_mycologist(id: i32, base: NewMycologist) {
+        Mycologist {
+            id,
+            rust_count: base.rust_count,
+        }
+    }
 }
 
 pub struct Rust {
@@ -48,9 +59,30 @@ pub struct CapturedRust {
     mycologist_id: i32,
     life_cycle_stage: i32,
 }
+
 #[derive(Debug, PartialEq)]
 pub struct NewRust {
     life_cycle_stage: i32,
+}
+
+// Convenience constructors that take just the parameters that exist in
+// this intermediate and not the intermediate it came from.
+impl Rust {
+    pub fn from_captured_rust(id: i32, base: CapturedRust) -> Rust {
+        Rust {
+            id,
+            mycologist_id: base.mycologist_id,
+            life_cycle_stage: base.life_cycle_stage,
+        }
+    }
+
+    pub fn from_new_rust(id: i32, mycologist_id: i32, base: NewRust) -> Rust {
+        Rust {
+            id,
+            mycologist_id,
+            life_cycle_stage: base.life_cycle_stage,
+        }
+    }
 }
 ```
 
