@@ -2,9 +2,16 @@
 name = "diesel-derive-intermediate"
 version = "0.1.0"
 authors = ["Brandon W Maister <quodlibetor@gmail.com>"]
+license = "Apache-2.0/MIT"
+readme = "README.md"
+categories = ["database"]
+keywords = ["diesel", "codegen"]
+repository = "https://github.com/quodlibetor/diesel-derive-intermediate"
 
 [lib]
 proc-macro = true
+# required for cargo-readme for some reason
+path = "src/lib.rs"
 
 [dependencies]
 syn = "0.11"
