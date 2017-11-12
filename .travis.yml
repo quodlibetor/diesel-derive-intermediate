@@ -1,9 +1,11 @@
 language: rust
 sudo: false
 rust:
+  - 1.18.0
   - stable
   - beta
   - nightly
+cache: cargo
 matrix:
   allow_failures:
     - rust: nightly
