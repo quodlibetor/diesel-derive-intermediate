@@ -10,7 +10,8 @@ repository = "https://github.com/quodlibetor/diesel-derive-intermediate"
 
 [lib]
 proc-macro = true
-# required for cargo-readme for some reason
+# required by cargo-readme until this is merged:
+# https://github.com/livioribeiro/cargo-readme/pull/16
 path = "src/lib.rs"
 
 [dependencies]
