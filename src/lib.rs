@@ -238,6 +238,7 @@ fn build_items(
     impl_generics: &syn::ImplGenerics,
     where_clause: &syn::WhereClause,
 ) -> quote::Tokens {
+
     let new_name = Ident::new("New".to_owned() + base_name);
     let common_fields = &intermediates.common_fields;
 
@@ -252,7 +253,7 @@ fn build_items(
         &intermediates,
         vis,
         field_difs,
-        new_structs,
+        &new_structs,
     );
 
     // add the New<type> struct
@@ -268,7 +269,7 @@ fn build_items(
 
     // add the same as above but for every extra intermediate
     for (prefix, extra_fields) in &intermediates.prefix_excluded {
-        let this_name = Ident::new(prefix.clone() + &base_name);
+        let this_name = Ident::new(prefix.clone() + base_name);
 
         new_structs = quote! {
             #new_structs
@@ -289,7 +290,7 @@ fn build_items(
             &intermediates,
             vis,
             field_difs,
-            new_structs,
+            &new_structs,
         );
     }
 
@@ -302,7 +303,7 @@ fn add_from_impls(
     intermediates: &IntermediateFields,
     vis: &Visibility,
     field_differences: Vec<(String, Vec<&Field>, Vec<&Field>)>,
-    new_structs: quote::Tokens,
+    new_structs: &quote::Tokens,
 ) -> quote::Tokens {
     let base_snake = base_name.to_snake_case();
     let base_field_idents = &to_struct_assignment_form(&intermediates.common_fields);
@@ -401,7 +402,7 @@ fn extract_items(attrs: &[Attribute], attr: &str) -> Vec<String> {
         })
         .flat_map(|list_items| {
             list_items.into_iter().map(|item| {
-                if let &NestedMetaItem::MetaItem(MetaItem::Word(ref val)) = item {
+                if let NestedMetaItem::MetaItem(MetaItem::Word(ref val)) = *item {
                     val.to_string()
                 } else {
                     panic!("Unexpected format for item: {} ", quote!(#item));
@@ -411,6 +412,7 @@ fn extract_items(attrs: &[Attribute], attr: &str) -> Vec<String> {
         .collect::<Vec<_>>()
 }
 
+#[cfg_attr(feature="cargo-clippy", allow(large_enum_variant))]
 enum ExcludeAttr<'a> {
     /// A field that is excluded from the `New` item
     Excluded(Field),
