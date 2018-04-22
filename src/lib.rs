@@ -607,5 +607,5 @@ fn field_status(field: &Field) -> ExcludeAttr {
         }
     }
     // if we never encountered an EXCLUDE attr then it's still included
-    return Included;
+    Included
 }
