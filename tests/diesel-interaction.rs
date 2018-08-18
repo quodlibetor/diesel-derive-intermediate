@@ -3,12 +3,10 @@
 #[macro_use]
 extern crate diesel;
 #[macro_use]
-extern crate diesel_codegen;
-#[macro_use]
 extern crate diesel_derive_intermediate;
 
 use diesel::prelude::*;
-use diesel::expression::sql;
+use diesel::sql_query;
 use diesel::sqlite::SqliteConnection;
 
 table! {
@@ -78,7 +76,7 @@ use items::*;
 #[cfg(test)]
 fn setup() -> SqliteConnection {
     let conn = SqliteConnection::establish(":memory:").unwrap();
-    let setup = sql::<diesel::types::Bool>(
+    let setup = sql_query(
         "
         CREATE TABLE mycologists (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -88,7 +86,7 @@ fn setup() -> SqliteConnection {
     setup
         .execute(&conn)
         .expect("Can't create table: mycologists");
-    let setup = sql::<diesel::types::Bool>(
+    let setup = sql_query(
         "
         CREATE TABLE rusts (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -98,7 +96,7 @@ fn setup() -> SqliteConnection {
         )",
     );
     setup.execute(&conn).expect("Can't create table: rusts");
-    let setup = sql::<diesel::types::Bool>(
+    let setup = sql_query(
         "
         CREATE TABLE mikes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -114,8 +112,8 @@ fn can_insert_mycologist() {
     let conn = setup();
     let obj = NewMycologist { rust_count: 156 };
 
-    diesel::insert(&obj)
-        .into(mycologists::table)
+    diesel::insert_into(mycologists::table)
+        .values(&obj)
         .execute(&conn)
         .expect("Couldn't insert struct into mycologists");
 
@@ -140,8 +138,8 @@ fn can_insert_intermediate() {
     };
     let mike = NewMycologist { rust_count: 0 };
 
-    diesel::insert(&mike)
-        .into(mycologists::table)
+    diesel::insert_into(mycologists::table)
+        .values(&mike)
         .execute(&conn)
         .expect("Couldn't insert struct into mycologists");
 
@@ -161,8 +159,8 @@ fn can_insert_intermediate() {
     let _rust_from_captured = Rust::from_captured_rust(7, captured_rust_from_new);
     let _rust_from_new = Rust::from_new_rust(8, 9, new_rust);
 
-    diesel::insert(&captured_rust)
-        .into(rusts::table)
+    diesel::insert_into(rusts::table)
+        .values(&captured_rust)
         .execute(&conn)
         .expect("Couldn't insert captured_rust into table");
 
@@ -195,21 +193,20 @@ fn can_insert_intermediate() {
     );
 }
 
-
 #[test]
 fn can_insert_into_intermediate_table() {
     let conn = setup();
     let mike = NewScientist { rust_count: 12 };
 
-    diesel::insert(&mike)
-        .into(mikes::table)
+    diesel::insert_into(mikes::table)
+        .values(&mike)
         .execute(&conn)
         .expect("Couldn't insert mike into scientists table");
 
     let fetched_mike = mikes::table.load::<Scientist>(&conn).unwrap();
 
-    diesel::insert(&fetched_mike)
-        .into(mycologists::table)
+    diesel::insert_into(mycologists::table)
+        .values(&fetched_mike)
         .execute(&conn)
         .expect("Couldn't insert mike into mycologists table");
 }
