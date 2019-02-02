@@ -20,5 +20,4 @@ quote = "0.3.10"
 heck = "0.3"
 
 [dev-dependencies]
-diesel = { version = "0.16.0", features = ["sqlite"] }
-diesel_codegen = { version = "0.16.0", features = ["sqlite"] }
+diesel = { version = "1.0", features = ["sqlite"] }
