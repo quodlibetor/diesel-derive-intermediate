@@ -8,7 +8,8 @@ extern crate diesel_derive_intermediate;
 #[derive(DieselIntermediate)]
 #[intermediate_derive(Debug)]
 struct Val {
-    #[intermediate_exclude] id: i32,
+    #[intermediate_exclude]
+    id: i32,
     /// has a docstring
     other: &'static str,
 }
@@ -21,8 +22,10 @@ fn builds() {
 #[derive(DieselIntermediate)]
 #[intermediate_derive(Debug)]
 struct Complex {
-    #[intermediate_exclude] id: i32,
-    #[intermediate_exclude(MyPrefix)] oid: i32,
+    #[intermediate_exclude]
+    id: i32,
+    #[intermediate_exclude(MyPrefix)]
+    oid: i32,
     /// has a docstring
     other: &'static str,
 }

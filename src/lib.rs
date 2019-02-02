@@ -159,9 +159,10 @@ const OVERRIDE_TABLE_NAME: &str = "intermediate_table_name";
 const DIESEL_TABLE_NAME: &str = "table_name";
 
 #[doc(hidden)]
-#[proc_macro_derive(DieselIntermediate,
-                    attributes(intermediate_exclude, intermediate_derive,
-                               intermediate_table_name))]
+#[proc_macro_derive(
+    DieselIntermediate,
+    attributes(intermediate_exclude, intermediate_derive, intermediate_table_name)
+)]
 pub fn diesel_intermediate_fields(input: TokenStream) -> TokenStream {
     let source = input.to_string();
 
@@ -238,7 +239,6 @@ fn build_items(
     impl_generics: &syn::ImplGenerics,
     where_clause: &syn::WhereClause,
 ) -> quote::Tokens {
-
     let new_name = Ident::new("New".to_owned() + base_name);
     let common_fields = &intermediates.common_fields;
 
@@ -381,7 +381,6 @@ fn to_struct_assignment_form(fields: &[Field]) -> Vec<Tokens> {
         .collect()
 }
 
-
 fn to_struct_assignment_form_ref(fields: &[&Field]) -> Vec<Tokens> {
     fields
         .iter()
@@ -391,7 +390,6 @@ fn to_struct_assignment_form_ref(fields: &[&Field]) -> Vec<Tokens> {
         })
         .collect()
 }
-
 
 fn extract_items(attrs: &[Attribute], attr: &str) -> Vec<String> {
     attrs
@@ -412,7 +410,7 @@ fn extract_items(attrs: &[Attribute], attr: &str) -> Vec<String> {
         .collect::<Vec<_>>()
 }
 
-#[cfg_attr(feature="cargo-clippy", allow(large_enum_variant))]
+#[cfg_attr(feature = "cargo-clippy", allow(large_enum_variant))]
 enum ExcludeAttr<'a> {
     /// A field that is excluded from the `New` item
     Excluded(Field),

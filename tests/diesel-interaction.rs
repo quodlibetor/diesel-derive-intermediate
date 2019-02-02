@@ -46,7 +46,8 @@ mod items {
     #[intermediate_derive(Debug, PartialEq, Insertable)]
     #[table_name = "mycologists"]
     pub struct Mycologist {
-        #[intermediate_exclude] pub id: i32,
+        #[intermediate_exclude]
+        pub id: i32,
         pub rust_count: i32,
     }
 
@@ -55,18 +56,29 @@ mod items {
     #[intermediate_table_name = "mikes"]
     #[table_name = "mycologists"]
     pub struct Scientist {
-        #[intermediate_exclude] pub id: i32,
+        #[intermediate_exclude]
+        pub id: i32,
         pub rust_count: i32,
     }
 
-    #[derive(DieselIntermediate, Debug, Clone, PartialEq, Identifiable, Insertable, Queryable,
-             Associations)]
+    #[derive(
+        DieselIntermediate,
+        Debug,
+        Clone,
+        PartialEq,
+        Identifiable,
+        Insertable,
+        Queryable,
+        Associations,
+    )]
     #[intermediate_derive(Clone, Debug, PartialEq, Insertable)]
     #[table_name = "rusts"]
     #[belongs_to(Mycologist)]
     pub struct Rust {
-        #[intermediate_exclude] pub id: i32,
-        #[intermediate_exclude(Captured)] pub mycologist_id: i32,
+        #[intermediate_exclude]
+        pub id: i32,
+        #[intermediate_exclude(Captured)]
+        pub mycologist_id: i32,
         pub life_cycle_stage: i32,
     }
 }
@@ -120,12 +132,10 @@ fn can_insert_mycologist() {
     let found: Vec<Mycologist> = mycologists::table.load(&conn).unwrap();
     assert_eq!(
         found,
-        vec![
-            Mycologist {
-                id: 1,
-                rust_count: 156,
-            },
-        ]
+        vec![Mycologist {
+            id: 1,
+            rust_count: 156,
+        },]
     );
 }
 
@@ -168,13 +178,11 @@ fn can_insert_intermediate() {
 
     assert_eq!(
         created,
-        vec![
-            Rust {
-                id: 1,
-                mycologist_id: 1,
-                life_cycle_stage: 0,
-            },
-        ]
+        vec![Rust {
+            id: 1,
+            mycologist_id: 1,
+            life_cycle_stage: 0,
+        },]
     );
 
     let rusts = Rust::belonging_to(&created_mike)
@@ -183,16 +191,13 @@ fn can_insert_intermediate() {
 
     assert_eq!(
         rusts,
-        vec![
-            Rust {
-                id: 1,
-                mycologist_id: 1,
-                life_cycle_stage: 0,
-            },
-        ]
+        vec![Rust {
+            id: 1,
+            mycologist_id: 1,
+            life_cycle_stage: 0,
+        },]
     );
 }
-
 
 #[test]
 fn can_insert_into_intermediate_table() {
